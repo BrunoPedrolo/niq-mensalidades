@@ -106,6 +106,14 @@
   "config": {},
   "comprovantes": [
     {
+      "nome": "Gabriela Peretti",
+      "mes": 4,
+      "ano": 2026,
+      "dia": 8,
+      "valor": 25,
+      "gerado_em": "09/06/2026, 08:25:42"
+    },
+    {
       "nome": "Lilian Aparecida Comparin",
       "mes": 4,
       "ano": 2026,
