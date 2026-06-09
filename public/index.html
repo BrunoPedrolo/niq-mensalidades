@@ -946,119 +946,112 @@ function drawComp(c){
 }
 
 function _finalizarComp(g,W,H,mn,dtP,vlr,c,cv){
-  var mn=mNome(c.mes);
-  var dtP=String(c.dia).padStart(2,'0')+'/'+String(c.mes).padStart(2,'0')+'/'+c.ano;
-  var vlr=fmtR(c.valor);
+  mn = mNome(c.mes);
+  dtP = String(c.dia).padStart(2,'0')+'/'+String(c.mes).padStart(2,'0')+'/'+c.ano;
+  vlr = fmtR(c.valor);
 
   // Título no header
   g.textAlign='right';
-  g.fillStyle='#1a1a1a'; g.font='bold 20px Arial';
-  g.fillText('Comprovante de Pagamento', W-20, 38);
-  g.fillStyle='#7a5c00'; g.font='600 11px Arial';
-  g.fillText('Mensalidade — Núcleo de Inovação e Qualidade', W-20, 58);
+  g.fillStyle='#1a1a1a'; g.font='bold 22px Arial';
+  g.fillText('Comprovante de Pagamento', W-22, 36);
+  g.fillStyle='#7a5c00'; g.font='bold 11px Arial';
+  g.fillText('Mensalidade — Nucleo de Inovacao e Qualidade', W-22, 56);
 
   // Faixa escura texto
   g.textAlign='left';
-  g.fillStyle='#dddddd'; g.font='500 10px Arial';
-  g.fillText('CONTROLE DE MENSALIDADES '+c.ano, 20, 109);
+  g.fillStyle='#dddddd'; g.font='bold 10px Arial';
+  g.fillText('CONTROLE DE MENSALIDADES ' + c.ano, 22, 108);
   g.textAlign='right';
   g.fillStyle='#bbbbbb'; g.font='10px Arial';
-  g.fillText('Vencimento: todo dia 10', W-20, 109);
+  g.fillText('Vencimento: todo dia 10', W-22, 108);
 
-  // Linha divisória
-  g.strokeStyle='#e0e0db'; g.lineWidth=0.5;
-  g.beginPath(); g.moveTo(20,155); g.lineTo(W-20,155); g.stroke();
-
-  // Campo: Nucleado
   g.textAlign='left';
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('NUCLEADO', 20, 142);
-  g.fillStyle='#1a1a1a'; g.font='bold 17px Arial';
-  g.fillText(c.nome, 20, 162);
 
-  // Linha divisória 2
-  g.strokeStyle='#e0e0db'; g.lineWidth=0.5;
-  g.beginPath(); g.moveTo(20,175); g.lineTo(W-20,175); g.stroke();
+  // Divisória
+  g.strokeStyle='#e0e0db'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(20,148); g.lineTo(W-20,148); g.stroke();
 
-  // Campos linha 2
-  var col1=20, col2=W/2+20;
+  // NUCLEADO
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('NUCLEADO', 22, 138);
+  g.fillStyle='#111111'; g.font='bold 17px Arial';
+  g.fillText(c.nome, 22, 160);
 
-  // Mês
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('MÊS DE REFERÊNCIA', col1, 198);
-  g.fillStyle='#1a1a1a'; g.font='bold 14px Arial';
-  g.fillText(mn+' de '+c.ano, col1, 218);
+  // Divisória
+  g.strokeStyle='#e0e0db'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(20,172); g.lineTo(W-20,172); g.stroke();
 
-  // Valor
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('VALOR PAGO', col2, 198);
+  var col1 = 22, col2 = Math.floor(W/2) + 20;
+
+  // MES
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('MES DE REFERENCIA', col1, 193);
+  g.fillStyle='#111111'; g.font='bold 14px Arial';
+  g.fillText(mn + ' de ' + c.ano, col1, 213);
+
+  // VALOR
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('VALOR PAGO', col2, 193);
   g.fillStyle='#b8860b'; g.font='bold 22px Arial';
-  g.fillText(vlr, col2, 222);
+  g.fillText(vlr, col2, 217);
 
-  // Data pgto
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('DATA DO PAGAMENTO', col1, 252);
-  g.fillStyle='#1a1a1a'; g.font='bold 14px Arial';
-  g.fillText(dtP, col1, 272);
+  // DATA
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('DATA DO PAGAMENTO', col1, 246);
+  g.fillStyle='#111111'; g.font='bold 14px Arial';
+  g.fillText(dtP, col1, 266);
 
-  // Status
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('STATUS', col2, 252);
-  // Badge amarelo
+  // STATUS
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('STATUS', col2, 246);
   g.fillStyle='#fffbea';
-  if(g.roundRect) g.roundRect(col2,258,120,22,11); else g.rect(col2,258,120,22);
+  g.beginPath();
+  if(g.roundRect) g.roundRect(col2, 253, 130, 24, 12);
+  else g.rect(col2, 253, 130, 24);
   g.fill();
-  g.strokeStyle='#F5C800'; g.lineWidth=1; g.stroke();
-  g.fillStyle='#b8860b'; g.font='bold 11px Arial'; g.textAlign='left';
-  g.fillText('✓ Pago em dia', col2+10, 273);
+  g.strokeStyle='#F5C800'; g.lineWidth=1.5; g.stroke();
+  g.fillStyle='#b8860b'; g.font='bold 12px Arial';
+  g.fillText('Pago em dia', col2 + 12, 269);
 
-  // Caixa validação
+  // Caixa validacao
   g.fillStyle='#f9f9f7';
-  if(g.roundRect) g.roundRect(20,295,W-40,52,8); else g.rect(20,295,W-40,52);
+  g.beginPath();
+  if(g.roundRect) g.roundRect(20, 290, W-40, 56, 8);
+  else g.rect(20, 290, W-40, 56);
   g.fill();
-  g.strokeStyle='#e0e0db'; g.lineWidth=0.5; g.stroke();
+  g.strokeStyle='#e0e0db'; g.lineWidth=1; g.stroke();
 
-  // Avatar BH
+  // Avatar
   g.fillStyle='#F5C800';
-  g.beginPath(); g.arc(44,321,14,0,Math.PI*2); g.fill();
+  g.beginPath(); g.arc(46, 318, 14, 0, Math.PI*2); g.fill();
   g.strokeStyle='#c9a200'; g.lineWidth=2; g.stroke();
   g.fillStyle='#1a1a1a'; g.font='bold 9px Arial'; g.textAlign='center';
-  g.fillText('BH',44,325);
+  g.fillText('BH', 46, 322);
 
-  // Texto validação
+  // Texto validacao
   g.textAlign='left';
-  g.fillStyle='#888'; g.font='bold 9px Arial';
-  g.fillText('VALIDAÇÃO', 66, 308);
-  g.fillStyle='#1a1a1a'; g.font='12px Arial';
-  g.fillText('Validado por ', 66, 326);
-  var w1 = g.measureText('Validado por ').width;
+  g.fillStyle='#888888'; g.font='bold 9px Arial';
+  g.fillText('VALIDACAO', 68, 306);
+  g.fillStyle='#111111'; g.font='12px Arial';
+  var txt1 = 'Validado por ';
+  g.fillText(txt1, 68, 322);
+  var w1 = g.measureText(txt1).width;
   g.font='bold 12px Arial';
-  g.fillText('Bruno Henrique Pedrolo de Souza', 66+w1, 326);
+  g.fillText('Bruno Henrique Pedrolo de Souza', 68 + w1, 322);
   g.font='12px Arial';
-  g.fillText('— Tesoureiro do Núcleo', 66, 342);
+  g.fillText('Tesoureiro do Nucleo', 68, 336);
 
-  // Rodapé
-  g.fillStyle='#888'; g.font='10px Arial'; g.textAlign='center';
-  g.fillText('NIQ · ACIP Pinhalzinho', W/2-50, H-14);
-  g.fillText('Sistema de Controle de Mensalidades', W/2+80, H-14);
+  // Rodape
+  g.fillStyle='#888888'; g.font='10px Arial'; g.textAlign='center';
+  g.fillText('NIQ - ACIP Pinhalzinho', W/2 - 100, H-13);
+  g.fillText('Sistema de Controle de Mensalidades', W/2 + 100, H-13);
 
   // Download
-  var lk=document.createElement('a');
-  var ns=(c.nome||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]/g,'_');
-  lk.download='comprovante_'+ns+'_'+mn+'_'+c.ano+'.png';
-  lk.href=cv.toDataURL('image/png');
+  var lk = document.createElement('a');
+  var ns = (c.nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'_');
+  lk.download = 'comprovante_' + ns + '_' + mn + '_' + c.ano + '.png';
+  lk.href = cv.toDataURL('image/png');
   lk.click();
 }
-// INIT
-loadAll().then(function(ok){
-  if(!ok) return;
-  buildPillsAnos();
-  buildPillsMeses();
-  buildPillsNuc();
-  renderDash();
-  renderNuc();
-});
 
-</script>
-</body>
-</html>
+>
