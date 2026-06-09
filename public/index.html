@@ -326,7 +326,7 @@ async function loadAll(){
       _db[y]={};
       for(var mi=0;mi<MNUM.length;mi++){
         var mn=MNUM[mi];
-        _db[y][mn]=(data[mn])?data[mn]:{};
+        _db[y][mn]=(data[mn]||data[String(mn)])?( data[mn]||data[String(mn)] ):{};
       }
     }
     // config
@@ -347,7 +347,7 @@ async function loadAll(){
   return true;
 }
 
-function getData(y,mn){ return(_db[y]&&_db[y][mn])?_db[y][mn]:{}; }
+function getData(y,mn){ if(!_db[y]) return {}; return _db[y][mn]||_db[y][String(mn)]||{}; }
 
 async function saveIndivAPI(ano,mes,nome,dia){
   if(!_db[ano]) _db[ano]={};
