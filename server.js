@@ -113,7 +113,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ─── API PAGAMENTOS ──────────────────────────────────────────────────────────
 app.get('/api/pagamentos/:ano', (req, res) => {
   const ano = req.params.ano;
-  res.json((memDB.pagamentos && memDB.pagamentos[ano]) ? memDB.pagamentos[ano] : {});
+  const raw = (memDB.pagamentos && memDB.pagamentos[ano]) ? memDB.pagamentos[ano] : {};
+  // Convert string keys to numbers for frontend compatibility
+  const result = {};
+  for (const [mes, dados] of Object.entries(raw)) {
+    result[parseInt(mes)] = dados;
+  }
+  res.json(result);
 });
 
 app.post('/api/pagamentos', async (req, res) => {
