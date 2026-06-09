@@ -414,7 +414,6 @@ for (var i=0;i<membros.length;i++) selNucs[membros[i]] = true;
 var mpM=null,mpMn=null,mpY=null,mnEdit=null;
 
 // STORAGE
-catch(e){} }
 
 function loadDB(){
   for(var yi=0;yi<ANOS.length;yi++){
@@ -443,12 +442,6 @@ function loadCfg(){
     if(o.mensalidade) mensalidade=o.mensalidade;
   }catch(e){}
 }
-
-));
-}
-
-
-; }
 
 // HELPERS
 function today(){ var d=new Date(); return {y:d.getFullYear(),m:d.getMonth()+1,d:d.getDate()}; }
@@ -888,8 +881,6 @@ function remIndiv(){
 document.getElementById('mpDia').addEventListener('keydown',function(e){if(e.key==='Enter') saveIndiv();});
 
 // COMPROVANTES
-
-catch(e){return[];} }
 
 function renderComp(){
   var list=_comps||[];
