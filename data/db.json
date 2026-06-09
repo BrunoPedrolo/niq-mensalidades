@@ -104,6 +104,14 @@
   "config": {},
   "comprovantes": [
     {
+      "nome": "Renan Antônio Breansini",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 9,
+      "valor": 25,
+      "gerado_em": "09/06/2026, 07:30:39"
+    },
+    {
       "nome": "Juliana Paulus",
       "mes": 6,
       "ano": 2026,
