@@ -1049,6 +1049,16 @@ function _finalizarComp(g,W,H,mn,dtP,vlr,c,cv){
   lk.href=cv.toDataURL('image/png');
   lk.click();
 }
+// INIT
+loadAll().then(function(ok){
+  if(!ok) return;
+  buildPillsAnos();
+  buildPillsMeses();
+  buildPillsNuc();
+  renderDash();
+  renderNuc();
+});
+
 </script>
 </body>
 </html>
