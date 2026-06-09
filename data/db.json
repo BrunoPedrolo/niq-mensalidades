@@ -101,5 +101,14 @@
     }
   },
   "config": {},
-  "comprovantes": []
+  "comprovantes": [
+    {
+      "nome": "Juliana Paulus",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 7,
+      "valor": 25,
+      "gerado_em": "09/06/2026, 07:29:40"
+    }
+  ]
 }
