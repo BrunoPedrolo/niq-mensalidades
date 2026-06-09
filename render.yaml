@@ -4,12 +4,14 @@ services:
     env: node
     buildCommand: npm install
     startCommand: npm start
-    disk:
-      name: niq-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /data
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: BrunoPedrolo/niq-mensalidades
+      - key: GITHUB_FILE
+        value: data/db.json
+      - key: GITHUB_BRANCH
+        value: main
       - key: NODE_ENV
         value: production
