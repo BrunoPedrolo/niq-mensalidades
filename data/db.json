@@ -113,7 +113,26 @@
       }
     }
   },
-  "config": {},
+  "config": {
+    "lista": [
+      "Deisi Lindemann",
+      "Andrei Rossetti",
+      "Jarbas Junior de Matos",
+      "Maicon Luis Simoneti",
+      "Cleiton Aloisio Becker",
+      "Eliane dos Santos",
+      "Marcos Pilz",
+      "Gabriela Peretti",
+      "Leomir Borghardt",
+      "Joceli Nepomuceno",
+      "Lilian Aparecida Comparin",
+      "Bruno Henrique Pedrolo de Souza",
+      "Aline Romilda dos Santos Pituco",
+      "Juliana Paulus",
+      "Renan Antônio Breansini",
+      "Yuri Signorati"
+    ]
+  },
   "comprovantes": [
     {
       "nome": "Andrei Rossetti",
