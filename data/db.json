@@ -114,6 +114,14 @@
   "config": {},
   "comprovantes": [
     {
+      "nome": "Marcos Pilz",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 10,
+      "valor": 25,
+      "gerado_em": "10/06/2026, 08:19:54"
+    },
+    {
       "nome": "Andrei Rossetti",
       "mes": 6,
       "ano": 2026,
