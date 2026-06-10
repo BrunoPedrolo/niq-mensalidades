@@ -113,6 +113,14 @@
   "config": {},
   "comprovantes": [
     {
+      "nome": "Andrei Rossetti",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 10,
+      "valor": 25,
+      "gerado_em": "10/06/2026, 07:36:37"
+    },
+    {
       "nome": "Maicon Luis Simoneti",
       "mes": 9,
       "ano": 2026,
