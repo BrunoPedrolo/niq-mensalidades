@@ -155,6 +155,14 @@
   },
   "comprovantes": [
     {
+      "nome": "Yuri Signorati",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 6,
+      "valor": 25,
+      "gerado_em": "06/07/2026, 17:04:22"
+    },
+    {
       "nome": "Andrei Rossetti",
       "mes": 5,
       "ano": 2026,
