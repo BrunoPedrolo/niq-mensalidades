@@ -162,6 +162,14 @@
   },
   "comprovantes": [
     {
+      "nome": "Andrei Rossetti",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 8,
+      "valor": 25,
+      "gerado_em": "08/07/2026, 07:58:43"
+    },
+    {
       "nome": "Marcos Pilz",
       "mes": 7,
       "ano": 2026,
