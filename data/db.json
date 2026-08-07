@@ -164,6 +164,14 @@
   },
   "comprovantes": [
     {
+      "nome": "Bruno Henrique Pedrolo de Souza",
+      "mes": 8,
+      "ano": 2026,
+      "dia": 7,
+      "valor": 25,
+      "gerado_em": "07/08/2026, 16:52:44"
+    },
+    {
       "nome": "Juliana Paulus",
       "mes": 8,
       "ano": 2026,
