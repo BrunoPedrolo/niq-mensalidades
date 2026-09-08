@@ -170,6 +170,14 @@
   "comprovantes": [
     {
       "nome": "Cleiton Aloisio Becker",
+      "mes": 11,
+      "ano": 2026,
+      "dia": 8,
+      "valor": 25,
+      "gerado_em": "08/09/2026, 08:23:34"
+    },
+    {
+      "nome": "Cleiton Aloisio Becker",
       "mes": 7,
       "ano": 2026,
       "dia": 8,
