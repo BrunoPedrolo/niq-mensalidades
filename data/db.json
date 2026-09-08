@@ -178,10 +178,23 @@
       "Yuri Signorati",
       "Matheus Scatolin"
     ],
-    "inicio": {},
+    "inicio": {
+      "Matheus Scatolin": {
+        "ano": 2026,
+        "mes": 6
+      }
+    },
     "mensalidade": 25
   },
   "comprovantes": [
+    {
+      "nome": "Matheus Scatolin",
+      "mes": 6,
+      "ano": 2026,
+      "dia": 8,
+      "valor": 25,
+      "gerado_em": "08/09/2026, 13:10:04"
+    },
     {
       "nome": "Matheus Scatolin",
       "mes": 6,
