@@ -177,6 +177,14 @@
   "comprovantes": [
     {
       "nome": "Leomir Borghardt",
+      "mes": 10,
+      "ano": 2026,
+      "dia": 8,
+      "valor": 25,
+      "gerado_em": "08/09/2026, 09:09:59"
+    },
+    {
+      "nome": "Leomir Borghardt",
       "mes": 11,
       "ano": 2026,
       "dia": 8,
