@@ -141,7 +141,8 @@
         "Eliane dos Santos": 10,
         "Joceli Nepomuceno": 10,
         "Cleiton Aloisio Becker": 8,
-        "Leomir Borghardt": 8
+        "Leomir Borghardt": 8,
+        "Bruno Henrique Pedrolo de Souza": 31
       },
       "12": {
         "Jarbas Junior de Matos": 10,
@@ -199,6 +200,14 @@
     "mensalidade": 25
   },
   "comprovantes": [
+    {
+      "nome": "Bruno Henrique Pedrolo de Souza",
+      "mes": 10,
+      "ano": 2026,
+      "dia": 31,
+      "valor": 25,
+      "gerado_em": "31/10/2026, 09:55:14"
+    },
     {
       "nome": "Bruno Henrique Pedrolo de Souza",
       "mes": 10,
