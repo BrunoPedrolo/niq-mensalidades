@@ -805,7 +805,14 @@
     ],
     "eventos": [],
     "movimentos": [],
-    "extratos": {},
+    "extratos": {
+      "2026-11": {
+        "conta": 856.47,
+        "aplicacao": 9150.2,
+        "obs": "",
+        "validado": false
+      }
+    },
     "antecipacoes": [
       {
         "id": "ant-seed-0",
