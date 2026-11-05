@@ -793,8 +793,8 @@
   "financeiro": {
     "abertura": {
       "data": "2026-11-05",
-      "conta": 856.47,
-      "aplicacao": 9150.2,
+      "conta": 0,
+      "aplicacao": 0,
       "definido": true
     },
     "categorias": [
