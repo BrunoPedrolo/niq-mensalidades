@@ -804,7 +804,19 @@
       "Outros"
     ],
     "eventos": [],
-    "movimentos": [],
+    "movimentos": [
+      {
+        "id": "mw3v4q3k1jv4y",
+        "data": "2026-11-04",
+        "tipo": "saida",
+        "conta": "conta",
+        "valor": 102,
+        "categoria": "Despesa operacional",
+        "descricao": "Coffee Break da Reunião de Planejamento",
+        "eventoId": null,
+        "obs": "Samuel"
+      }
+    ],
     "extratos": {},
     "antecipacoes": [
       {
