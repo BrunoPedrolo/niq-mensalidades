@@ -792,10 +792,10 @@
   ],
   "financeiro": {
     "abertura": {
-      "data": "2026-02-01",
-      "conta": 0,
-      "aplicacao": 0,
-      "definido": false
+      "data": "2026-11-05",
+      "conta": 856.47,
+      "aplicacao": 9150.2,
+      "definido": true
     },
     "categorias": [
       "Evento",
