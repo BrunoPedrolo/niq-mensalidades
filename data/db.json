@@ -803,15 +803,7 @@
       "Rendimento",
       "Outros"
     ],
-    "eventos": [
-      {
-        "id": "mw3v39s0wtd7j",
-        "nome": "Teste",
-        "data": "2026-11-09",
-        "orcamento": 1000,
-        "obs": ""
-      }
-    ],
+    "eventos": [],
     "movimentos": [],
     "extratos": {},
     "antecipacoes": [
