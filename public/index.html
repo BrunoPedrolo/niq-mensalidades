@@ -194,6 +194,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--vd);cursor:pointe
 .mini div{background:var(--bg);border-radius:10px;padding:9px 12px}
 .mini .k{font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.06em}
 .mini .v{font-size:17px;font-weight:900;margin-top:2px}
+.dia-in[type=date]{width:150px}
 .dia-in{width:56px;border:1.5px solid var(--bo);border-radius:8px;padding:4px 6px;text-align:center;font-weight:800}
 
 /* ===== MODAL ===== */
@@ -384,7 +385,17 @@ function valorAno(ano) {
   Object.keys(m).map(Number).sort((a, b) => a - b).forEach((y) => { if (y <= ano && Number(m[y]) > 0) v = Number(m[y]); });
   return v == null ? 25 : v;
 }
-function diaPago(nome, ano, mes) { const x = (((S.pag || {})[ano] || {})[mes] || {})[nome]; return x || null; }
+// valor guardado: número = dia do próprio mês de referência; texto 'AAAA-MM-DD' = pago em outra data
+function rawPago(nome, ano, mes) { const x = (((S.pag || {})[ano] || {})[mes] || {})[nome]; return x || null; }
+function pagoInfo(nome, ano, mes) {
+  const v = rawPago(nome, ano, mes); if (!v) return null;
+  const iso = typeof v === 'number' ? `${ano}-${pad(mes)}-${pad(v)}` : String(v);
+  const [y, m, d] = iso.split('-').map(Number);
+  return { iso, y, m, d, tarde: iso > `${ano}-${pad(mes)}-${pad(VENC_DIA)}` };
+}
+function normPagto(iso, ano, mes) { const [y, m, d] = iso.split('-').map(Number); return (y === ano && m === mes) ? d : iso; }
+const pagoEmDe = (c) => c.pagoEm || `${c.ano}-${pad(c.mes)}-${pad(c.dia)}`;
+const dataPagoHtml = (pg) => esc(fmtData(pg.iso)) + (pg.tarde ? ' <span class="bd wn" title="Pago após o vencimento (dia ' + VENC_DIA + ')">após venc.</span>' : '');
 function isNA(m, ano, mes) {
   const k = key(ano, mes);
   if (m.inicio && k < key(m.inicio.ano, m.inicio.mes)) return true;
@@ -396,7 +407,7 @@ function isNA(m, ano, mes) {
 function vencido(ano, mes) { const t = hoje(), k = key(ano, mes), tk = key(t.y, t.m); return k < tk || (k === tk && t.d > VENC_DIA); }
 // pago | atrasado | pendente | na   (pagamento registrado sempre vale, mesmo para inativo)
 function statusDe(m, ano, mes) {
-  if (diaPago(m.nome, ano, mes)) return 'pago';
+  if (rawPago(m.nome, ano, mes)) return 'pago';
   if (isNA(m, ano, mes)) return 'na';
   return vencido(ano, mes) ? 'atrasado' : 'pendente';
 }
@@ -595,7 +606,7 @@ function hbars(rows, fmt) { // rows: [{label,value,color,tip}]
 const legend = (items) => `<div class="legend">${items.map((i) => `<span><i style="background:${i.color}"></i>${esc(i.label)}</span>`).join('')}</div>`;
 
 function animateNums() {
-  $$('.num').forEach((el) => {
+  $$('.cnt').forEach((el) => {
     const k = el.dataset.k, to = parseFloat(el.dataset.v), f = el.dataset.f, from = S.prevNums[k];
     S.prevNums[k] = to;
     const fmt = (v) => f === 'r' ? fmtR(v) : f === 'p' ? Math.round(v) + '%' : String(Math.round(v));
@@ -675,7 +686,7 @@ function renderDash() {
 
   /* KPIs */
   const kpi = (id, label, valueHtml, sub, color, st, extra) => `<button class="kpi ${st ? 'click' : ''} ${st && d.status === st ? 'act' : ''}" style="--c:${color}" ${st ? `data-act="dash-status" data-st="${st}"` : ''}><div class="k">${label}</div><div class="v">${valueHtml}</div><div class="s">${sub}</div>${extra || ''}</button>`;
-  const num = (k, v, f) => `<span class="num" data-k="${k}" data-v="${v}" data-f="${f}">…</span>`;
+  const num = (k, v, f) => `<span class="cnt" data-k="${k}" data-v="${v}" data-f="${f}">…</span>`;
   const kpis = `<div class="kpis">
     ${kpi('v', 'Mensalidade vigente', `<span>${fmtR(v)}</span>`, `valor de ${ano}`, 'var(--pu)')}
     ${kpi('arr', 'Arrecadado', num('arr', arrec, 'r'), `${dd.P} de ${dd.E} previstos`, 'var(--vd)', 'pago', `<div class="pb"><i style="width:${pctPrev}%"></i></div>`)}
@@ -729,8 +740,8 @@ function renderDash() {
   const heat = `<div class="card"><div class="card-h">🗓️ Mapa de calor — nucleados × meses <span class="muted right">clique para abrir a ficha</span></div><div class="card-b tw">
     <table class="heat"><thead><tr><th></th>${MESES.map((m) => `<th class="${m === curMes ? 'cur' : ''}">${MA[m]}</th>`).join('')}</tr></thead><tbody>
     ${heatRows.map((m) => `<tr><td class="nm"><button class="lnk" data-act="ficha" data-n="${esc(m.nome)}">${esc(m.nome)}</button></td>${MESES.map((mes) => {
-      const s = statusDe(m, ano, mes), dia = diaPago(m.nome, ano, mes);
-      const tip = `${m.nome} · ${MN[mes]}/${ano}: ${s === 'pago' ? 'pago dia ' + dia : s === 'na' ? 'não se aplica' : s}`;
+      const s = statusDe(m, ano, mes), pg = pagoInfo(m.nome, ano, mes);
+      const tip = `${m.nome} · ${MN[mes]}/${ano}: ${s === 'pago' ? 'pago em ' + fmtData(pg.iso) : s === 'na' ? 'não se aplica' : s}`;
       return `<td><div class="hc ${s} ${inRange(mes) ? '' : 'dim'}" ${s !== 'na' ? `data-act="ficha" data-n="${esc(m.nome)}" data-m="${mes}"` : ''} title="${esc(tip)}">${s === 'pago' ? '✓' : s === 'atrasado' ? '✗' : s === 'pendente' ? '·' : '–'}</div></td>`;
     }).join('')}</tr>`).join('')}
     </tbody></table>
@@ -765,7 +776,7 @@ function nucRows(statusOverride) {
       const st = statusDe(m, n.ano, mes);
       if (st === 'na') return;
       if (filtroSt !== 'todos' && st !== filtroSt) return;
-      rows.push({ k: `${n.ano}|${mes}|${m.nome}`, m, ano: n.ano, mes, st, dia: diaPago(m.nome, n.ano, mes) });
+      rows.push({ k: `${n.ano}|${mes}|${m.nome}`, m, ano: n.ano, mes, st, pg: pagoInfo(m.nome, n.ano, mes) });
     });
   });
   rows.sort((a, b) => a.m.nome.localeCompare(b.m.nome) || a.mes - b.mes);
@@ -800,7 +811,9 @@ function renderNuc() {
   if (pode && n.sel.size) {
     let soma = 0; n.sel.forEach((r) => { soma += valorAno(r.ano); });
     selbar = `<div class="selbar"><span><b>${n.sel.size}</b> selecionado${n.sel.size > 1 ? 's' : ''} · ${fmtR(soma)}</span>
-      <span style="display:flex;align-items:center;gap:8px">Dia do pagamento <input class="inp" id="bulk-dia" type="number" min="1" max="31" placeholder="1–31" value="${esc(n.dia || '')}" data-inp="bulk-dia"></span>
+      <span style="display:flex;align-items:center;gap:8px">Pagamento
+        <select class="sel" id="bulk-modo" data-chg="bulk-modo" style="padding:5px 10px"><option value="data" ${n.modo !== 'dia' ? 'selected' : ''}>em uma data</option><option value="dia" ${n.modo === 'dia' ? 'selected' : ''}>no dia X de cada mês</option></select>
+        ${n.modo === 'dia' ? `<input class="inp" id="bulk-dia" type="number" min="1" max="31" placeholder="1–31" value="${esc(n.dia || '')}" data-inp="bulk-dia">` : `<input class="inp" id="bulk-data" type="date" value="${esc(n.data || hoje().iso)}" data-inp="bulk-data" style="width:160px">`}</span>
       <button class="btn primary" data-act="bulk-reg">✓ Registrar pagamentos</button>
       <button class="btn danger" data-act="bulk-rem">✗ Remover pagamentos</button>
       <button class="btn ghost right" data-act="bulk-clear">Limpar seleção</button></div>`;
@@ -811,23 +824,26 @@ function renderNuc() {
   const allSel = rows.length && rows.every((r) => n.sel.has(r.k));
   const tabela = `<div class="card"><div class="tw"><table><thead><tr>
     ${pode ? `<th style="width:34px"><input type="checkbox" data-act="sel-all" ${allSel ? 'checked' : ''} title="Selecionar todos"></th>` : ''}
-    <th>Nucleado</th><th>Mês</th><th>Situação</th><th>Dia</th><th class="num">Valor</th>${pode ? '<th class="c">Ações</th>' : ''}</tr></thead><tbody>
+    <th>Nucleado</th><th>Mês</th><th>Situação</th><th>Pago em</th><th class="num">Valor</th>${pode ? '<th class="c">Ações</th>' : ''}</tr></thead><tbody>
     ${rows.map((r) => `<tr>${pode ? `<td><input type="checkbox" data-act="sel-row" data-k="${esc(r.k)}" ${n.sel.has(r.k) ? 'checked' : ''}></td>` : ''}
       <td><div class="who-cell"><span class="av ${r.st === 'atrasado' ? 'rd' : ''}">${esc(initials(r.m.nome))}</span><button class="lnk" data-act="ficha" data-n="${esc(r.m.nome)}">${esc(r.m.nome)}</button></div></td>
-      <td>${MN[r.mes]} ${r.ano}</td><td>${badge(r.st)}</td><td>${r.dia ? 'Dia ' + r.dia : '—'}</td><td class="num">${fmtR(valorAno(r.ano))}</td>
-      ${pode ? `<td class="c">${r.dia ? `<button class="btn pu sm" data-act="comp-gerar" data-n="${esc(r.m.nome)}" data-y="${r.ano}" data-m="${r.mes}" title="Gerar comprovante">🧾</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="7" class="al-e">Nenhum registro com esses filtros.</td></tr>`}
+      <td>${MN[r.mes]} ${r.ano}</td><td>${badge(r.st)}</td><td>${r.pg ? dataPagoHtml(r.pg) : '—'}</td><td class="num">${fmtR(valorAno(r.ano))}</td>
+      ${pode ? `<td class="c">${r.pg ? `<button class="btn pu sm" data-act="comp-gerar" data-n="${esc(r.m.nome)}" data-y="${r.ano}" data-m="${r.mes}" title="Gerar comprovante">🧾</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="7" class="al-e">Nenhum registro com esses filtros.</td></tr>`}
     </tbody></table></div></div>`;
   $('#view').innerHTML = filtros + (pode ? selbar : '') + resumo + tabela + (pode ? '' : '<p class="muted" style="text-align:center">Modo consulta — somente o tesoureiro registra pagamentos.</p>');
 }
 
 async function aplicarBulk(remover) {
   const n = S.nuc;
-  let dia = null;
-  if (!remover) {
+  let dia = null, iso = '';
+  if (!remover && n.modo === 'dia') {
     dia = parseInt(val('bulk-dia'), 10);
     if (!(dia >= 1 && dia <= 31)) { toast('Informe o dia do pagamento (1 a 31).', 'warn'); const i = $('#bulk-dia'); if (i) i.focus(); return; }
+  } else if (!remover) {
+    iso = val('bulk-data');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) { toast('Informe a data do pagamento.', 'warn'); const i = $('#bulk-data'); if (i) i.focus(); return; }
   } else if (!(await confirmBox('Remover pagamentos', `Remover o pagamento de ${n.sel.size} registro(s)?`, 'Remover', true))) return;
-  const regs = []; n.sel.forEach((r) => regs.push({ ano: r.ano, mes: r.mes, nome: r.m.nome, dia }));
+  const regs = []; n.sel.forEach((r) => regs.push({ ano: r.ano, mes: r.mes, nome: r.m.nome, dia: iso ? normPagto(iso, r.ano, r.mes) : dia }));
   const ok = await salvarPagamentos(regs);
   if (ok) { toast(remover ? 'Pagamentos removidos.' : `${regs.length} pagamento(s) registrado(s)!`); n.sel.clear(); }
   renderCurrent();
@@ -854,7 +870,7 @@ function renderFicha() {
   const m = membroPor(f.nome); if (!m) { closeFicha(); return; }
   const v = valorAno(f.ano), pode = can.pag();
   let p = 0, a = 0;
-  const linhas = MESES.map((mes) => ({ mes, st: statusDe(m, f.ano, mes), dia: diaPago(m.nome, f.ano, mes) }));
+  const linhas = MESES.map((mes) => ({ mes, st: statusDe(m, f.ano, mes), pg: pagoInfo(m.nome, f.ano, mes) }));
   linhas.forEach((l) => { if (l.st === 'pago') p++; else if (l.st === 'atrasado') a++; });
   const desde = m.inicio ? `desde ${MA[m.inicio.mes]}/${m.inicio.ano}` : '';
   const inat = m.inativoDesde ? `inativo desde ${MA[m.inativoDesde.mes]}/${m.inativoDesde.ano}` : (!m.ativo ? 'inativo' : '');
@@ -862,10 +878,10 @@ function renderFicha() {
     <div class="dr-b">
       <div class="chips">${ANOS.map((y) => `<button class="chip ${y === f.ano ? 'on' : ''}" data-act="ficha-ano" data-y="${y}">${y}</button>`).join('')}</div>
       <div class="mini"><div><div class="k">Total pago</div><div class="v pos">${fmtR(p * v)}</div></div><div><div class="k">Em aberto</div><div class="v ${a ? 'neg' : ''}">${fmtR(a * v)}</div></div><div><div class="k">Adimplência</div><div class="v">${(p + a) ? Math.round(p / (p + a) * 100) + '%' : '—'}</div></div></div>
-      <div class="tw"><table><thead><tr><th>Mês</th><th>Situação</th><th>Dia</th>${pode ? '<th class="c">Registrar</th>' : ''}</tr></thead><tbody>
+      <div class="tw"><table><thead><tr><th>Mês</th><th>Situação</th><th>Pago em</th>${pode ? '<th class="c">Registrar</th>' : ''}</tr></thead><tbody>
       ${linhas.map((l) => `<tr data-y="${f.ano}" data-m="${l.mes}"><td><b>${MN[l.mes]}</b></td><td>${badge(l.st)}</td>
-        <td>${pode && l.st !== 'na' ? `<input class="dia-in" type="number" min="1" max="31" value="${l.dia || ''}" placeholder="dia">` : (l.dia ? 'Dia ' + l.dia : '—')}</td>
-        ${pode ? `<td class="c">${l.st === 'na' ? '' : `<span style="display:inline-flex;gap:4px"><button class="btn sm" data-act="fd-save" data-n="${esc(m.nome)}" title="Salvar">✓</button>${l.dia ? `<button class="btn danger sm" data-act="fd-del" data-n="${esc(m.nome)}" title="Remover">✗</button><button class="btn pu sm" data-act="comp-gerar" data-n="${esc(m.nome)}" data-y="${f.ano}" data-m="${l.mes}" title="Comprovante">🧾</button>` : ''}</span>`}</td>` : ''}</tr>`).join('')}
+        <td>${pode && l.st !== 'na' ? `<input class="dia-in" type="date" value="${l.pg ? l.pg.iso : ''}">${l.pg && l.pg.tarde ? ' <span class="bd wn" title="Pago após o vencimento">após venc.</span>' : ''}` : (l.pg ? dataPagoHtml(l.pg) : '—')}</td>
+        ${pode ? `<td class="c">${l.st === 'na' ? '' : `<span style="display:inline-flex;gap:4px"><button class="btn sm" data-act="fd-save" data-n="${esc(m.nome)}" title="Salvar">✓</button>${l.pg ? `<button class="btn danger sm" data-act="fd-del" data-n="${esc(m.nome)}" title="Remover">✗</button><button class="btn pu sm" data-act="comp-gerar" data-n="${esc(m.nome)}" data-y="${f.ano}" data-m="${l.mes}" title="Comprovante">🧾</button>` : ''}</span>`}</td>` : ''}</tr>`).join('')}
       </tbody></table></div></div>`;
   dr.classList.add('on'); sc.classList.add('on');
 }
@@ -972,7 +988,7 @@ function renderComp() {
     <input class="inp" id="c-q" placeholder="🔎 Buscar nucleado…" value="${esc(S.compQ)}" data-inp="comp-q" style="width:220px">
     <button class="btn danger right" data-act="comp-clear">🗑 Limpar histórico</button></div>
     <div class="card"><div class="tw"><table><thead><tr><th>Nucleado</th><th>Mês de referência</th><th class="num">Valor</th><th>Pago em</th><th>Gerado em</th><th class="c">PNG</th></tr></thead><tbody>
-    ${list.map((x) => `<tr><td><b>${esc(x.c.nome)}</b></td><td>${MN[x.c.mes]} ${x.c.ano}</td><td class="num pos">${fmtR(x.c.valor)}</td><td>${pad(x.c.dia)}/${pad(x.c.mes)}/${x.c.ano}</td><td class="muted">${esc(x.c.gerado_em)}</td><td class="c"><button class="btn pu sm" data-act="comp-baixar" data-i="${x.i}">⬇ Baixar</button></td></tr>`).join('') || '<tr><td colspan="6" class="al-e">Nenhum comprovante gerado ainda. Use o botão 🧾 ao lado de um pagamento.</td></tr>'}
+    ${list.map((x) => `<tr><td><b>${esc(x.c.nome)}</b></td><td>${MN[x.c.mes]} ${x.c.ano}</td><td class="num pos">${fmtR(x.c.valor)}</td><td>${fmtData(pagoEmDe(x.c))}</td><td class="muted">${esc(x.c.gerado_em)}</td><td class="c"><button class="btn pu sm" data-act="comp-baixar" data-i="${x.i}">⬇ Baixar</button></td></tr>`).join('') || '<tr><td colspan="6" class="al-e">Nenhum comprovante gerado ainda. Use o botão 🧾 ao lado de um pagamento.</td></tr>'}
     </tbody></table></div></div>`;
 }
 
@@ -984,7 +1000,7 @@ async function desenharComprovante(c) {
   cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
   const F = 'Arial, Helvetica, sans-serif';
-  const emDia = c.dia <= VENC_DIA;
+  const pagoEm = pagoEmDe(c), emDia = pagoEm <= `${c.ano}-${pad(c.mes)}-${pad(VENC_DIA)}`;
   g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
   g.fillStyle = '#F5C800'; g.fillRect(0, 0, W, 96);
   g.fillStyle = '#444'; g.fillRect(0, 96, W, 28);
@@ -1003,7 +1019,7 @@ async function desenharComprovante(c) {
   const c2 = Math.floor(W / 2) + 20;
   campo('MÊS DE REFERÊNCIA', 24, 222); g.fillStyle = '#111'; g.font = `bold 16px ${F}`; g.fillText(`${MN[c.mes]} de ${c.ano}`, 24, 246);
   campo('VALOR PAGO', c2, 222); g.fillStyle = '#b8860b'; g.font = `bold 26px ${F}`; g.fillText(fmtR(c.valor), c2, 250);
-  campo('DATA DO PAGAMENTO', 24, 284); g.fillStyle = '#111'; g.font = `bold 16px ${F}`; g.fillText(`${pad(c.dia)}/${pad(c.mes)}/${c.ano}`, 24, 308);
+  campo('DATA DO PAGAMENTO', 24, 284); g.fillStyle = '#111'; g.font = `bold 16px ${F}`; g.fillText(fmtData(pagoEm), 24, 308);
   campo('SITUAÇÃO', c2, 284);
   const txt = emDia ? 'Pago em dia' : 'Pago após o vencimento';
   g.font = `bold 13px ${F}`; const bw = g.measureText(txt).width + 30;
@@ -1027,8 +1043,8 @@ function baixarCanvas(cv, nome, mes, ano) {
   const a = document.createElement('a'); a.download = `comprovante_${ns}_${MN[mes]}_${ano}.png`; a.href = cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
 }
 async function gerarComprovante(nome, ano, mes) {
-  const dia = diaPago(nome, ano, mes); if (!dia) { toast('Não há pagamento registrado nesse mês.', 'warn'); return; }
-  const entry = { nome, mes, ano, dia, valor: valorAno(ano), gerado_em: new Date().toLocaleString('pt-BR') };
+  const pg = pagoInfo(nome, ano, mes); if (!pg) { toast('Não há pagamento registrado nesse mês.', 'warn'); return; }
+  const entry = { nome, mes, ano, dia: pg.d, pagoEm: pg.iso, valor: valorAno(ano), gerado_em: new Date().toLocaleString('pt-BR') };
   const cv = await desenharComprovante({ ...entry, validador: (S.cfg && S.cfg.tesoureiroNome) || 'Tesoureiro' });
   baixarCanvas(cv, nome, mes, ano);
   try { const j = await api('POST', '/api/comprovantes', entry); S.comps.unshift(entry); avisaSalvo(j); toast('🧾 Comprovante gerado!'); if (S.tab === 'comp') renderCurrent(); } catch (e) { if (e.message !== 'auth') toast('Comprovante baixado, mas o histórico não foi salvo: ' + e.message, 'warn'); }
@@ -1050,7 +1066,7 @@ function receitasAuto() {
   Object.keys(S.pag).forEach((ano) => Object.keys(S.pag[ano] || {}).forEach((mes) => Object.entries(S.pag[ano][mes] || {}).forEach(([nome, dia]) => {
     if (!dia) return;
     const a = ant.find((x) => x.nome === nome && x.ano === +ano && +mes >= x.de && +mes <= x.ate);
-    const data = a ? a.recebidoEm : `${ano}-${pad(+mes)}-${pad(dia)}`;
+    const data = a ? a.recebidoEm : (typeof dia === 'number' ? `${ano}-${pad(+mes)}-${pad(dia)}` : String(dia));
     out.push({ data, tipo: 'entrada', conta: 'conta', cat: 'Mensalidades', valor: cents(valorAno(+ano)), auto: true, nome, ano: +ano, mes: +mes });
   })));
   return out;
@@ -1101,12 +1117,16 @@ async function finOp(body) {
   }
 }
 
+function anosFinList() {
+  const set = new Set(ANOS); (S.fin.movimentos || []).forEach((m) => set.add(+m.data.slice(0, 4)));
+  return Array.from(set).sort();
+}
 function renderFin() {
   if (!S.fin) { $('#view').innerHTML = '<div class="al-e">Carregando…</div>'; return; }
   LED = ledger();
   const u = S.finUi, subs = [['resumo', '📊 Resumo'], ['mov', '💸 Movimentações'], ['eventos', '🎪 Eventos'], ['conc', '🧮 Conciliação']];
   const head = `<div class="bar-row"><div class="chips">${subs.map(([k, l]) => `<button class="chip ${u.sub === k ? 'on' : ''}" data-act="fin-sub" data-s="${k}">${l}</button>`).join('')}</div>
-    <div class="right"><select class="sel" id="f-ano" data-chg="fin-ano">${ANOS.map((y) => `<option value="${y}" ${y === u.ano ? 'selected' : ''}>${y}</option>`).join('')}</select></div></div>`;
+    <div class="right"><select class="sel" id="f-ano" data-chg="fin-ano">${anosFinList().map((y) => `<option value="${y}" ${y === u.ano ? 'selected' : ''}>${y}</option>`).join('')}</select></div></div>`;
   const aviso = S.fin.abertura.definido ? '' : `<div class="banner wn">⚠️ Os saldos de abertura ainda não foram informados — os saldos abaixo partem de zero. <button class="btn sm" data-act="fin-sub" data-s="conc">Informar agora</button></div>`;
   const corpo = { resumo: finResumo, mov: finMov, eventos: finEventos, conc: finConc }[u.sub]();
   $('#view').innerHTML = head + aviso + corpo;
@@ -1117,7 +1137,7 @@ function renderFin() {
 function finResumo() {
   const u = S.finUi, ano = u.ano, t = hoje(), fl = fluxoAno(ano);
   const sa = saldoEm(t.iso), totE = fl.ent.reduce((a, b) => a + b, 0), totS = fl.sai.reduce((a, b) => a + b, 0);
-  const kpi = (k, l, v, s, c) => `<div class="kpi" style="--c:${c}"><div class="k">${l}</div><div class="v"><span class="num" data-k="${k}" data-v="${v}" data-f="r">…</span></div><div class="s">${s}</div></div>`;
+  const kpi = (k, l, v, s, c) => `<div class="kpi" style="--c:${c}"><div class="k">${l}</div><div class="v"><span class="cnt" data-k="${k}" data-v="${v}" data-f="r">…</span></div><div class="s">${s}</div></div>`;
   const kpis = `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
     ${kpi('fc', 'Conta corrente', sa.conta / 100, 'saldo calculado hoje', 'var(--vd)')}${kpi('fa', 'Aplicação', sa.aplicacao / 100, 'saldo calculado hoje', 'var(--bl)')}
     ${kpi('ft', 'Saldo total', sa.total / 100, 'conta + aplicação', 'var(--pu)')}${kpi('fr', `Resultado ${ano}`, totE - totS, `${fmtR(totE)} entradas − ${fmtR(totS)} saídas`, totE - totS >= 0 ? 'var(--vd)' : 'var(--rd)')}</div>`;
@@ -1147,6 +1167,12 @@ function finResumo() {
 function finMov() {
   const u = S.finUi, ano = u.ano, meses = finMeses(ano), q = norm(u.q);
   const cats = ['Mensalidades', 'Transferência'].concat(S.fin.categorias);
+  // filtro que não existe mais nas opções seria invisível na tela: zera
+  if (u.mFiltro && !meses.includes(u.mFiltro)) u.mFiltro = 0;
+  if (u.cat && !cats.includes(u.cat)) u.cat = '';
+  if (u.evento && !S.fin.eventos.some((e) => e.id === u.evento)) u.evento = '';
+  const filtrosAtivos = !!(u.mFiltro || u.cat || u.evento || u.tipo || u.conta || u.q);
+  const outros = {}; S.fin.movimentos.forEach((m) => { const y = m.data.slice(0, 4); if (y !== String(ano)) outros[y] = (outros[y] || 0) + 1; });
   let rows = LED.filter((x) => !x.auto && x.data.slice(0, 4) === String(ano)).map((x) => ({ ...x }));
   if (u.auto) { // mensalidades agrupadas por mês de recebimento
     const g = {};
@@ -1166,7 +1192,9 @@ function finMov() {
     <div><span class="lbl">Conta</span>${sel('m-conta', 'mov-f-conta', `<option value="">Todas</option><option value="conta" ${u.conta === 'conta' ? 'selected' : ''}>Conta corrente</option><option value="aplicacao" ${u.conta === 'aplicacao' ? 'selected' : ''}>Aplicação</option>`)}</div>
     <div class="grow"><span class="lbl">Buscar</span><input class="inp" id="m-q" placeholder="🔎 descrição…" value="${esc(u.q)}" data-inp="mov-q" style="width:100%"></div>
     <label style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" data-chg="mov-auto" ${u.auto ? 'checked' : ''}> incluir mensalidades</label>
+    ${filtrosAtivos ? '<button class="btn ghost" data-act="mov-limpar">✕ Limpar filtros</button>' : ''}
     <button class="btn primary" data-act="mov-new">+ Novo lançamento</button></div></div></div>`;
+  const dicaAnos = Object.keys(outros).length ? `<div class="banner wn" style="margin-bottom:10px">📅 Há lançamentos em outros anos: ${Object.keys(outros).sort().map((y) => `<button class="chip" data-act="fin-goano" data-y="${y}">${y} <span class="n">(${outros[y]})</span></button>`).join(' ')}</div>` : '';
   const tot = `<div class="muted" style="margin:2px 2px 10px">${rows.length} lançamento(s) · entradas <b class="pos">${fmtR(e / 100)}</b> · saídas <b class="neg">${fmtR(s / 100)}</b> · líquido <b>${fmtR((e - s) / 100)}</b></div>`;
   const tabela = `<div class="card"><div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Evento</th><th>Conta</th><th class="num">Valor</th><th class="c">Ações</th></tr></thead><tbody>
     ${rows.map((x) => {
@@ -1175,9 +1203,9 @@ function finMov() {
       const contaTxt = x.tipo === 'transferencia' ? `${CONTA_NOME[x.conta]} → ${CONTA_NOME[x.contaDestino]}` : CONTA_NOME[x.conta];
       const acoes = x.auto ? '<span class="bd gr">automático</span>' : mesFechado(x.data) ? '<span title="Mês validado — reabra para alterar">🔒</span>' : `<span style="display:inline-flex;gap:4px"><button class="btn sm" data-act="mov-edit" data-id="${esc(x.id)}">✏️</button><button class="btn danger sm" data-act="mov-del" data-id="${esc(x.id)}">🗑</button></span>`;
       return `<tr><td>${fmtData(x.data)}</td><td>${t}</td><td>${esc(x.cat || x.categoria)}</td><td>${esc(x.descricao)}${x.obs ? `<div class="muted" style="font-size:11px">${esc(x.obs)}</div>` : ''}</td><td>${esc(evNome(x.eventoId))}</td><td>${contaTxt}</td><td class="num">${v}</td><td class="c">${acoes}</td></tr>`;
-    }).join('') || '<tr><td colspan="8" class="al-e">Nenhum lançamento com esses filtros.</td></tr>'}
+    }).join('') || `<tr><td colspan="8" class="al-e">${filtrosAtivos ? 'Nenhum lançamento com esses filtros.' : Object.keys(outros).length ? `Nenhum lançamento em ${ano}. Há lançamentos em outros anos (veja acima).` : `Nenhum lançamento em ${ano} ainda.`}</td></tr>`}
     </tbody></table></div></div>`;
-  return filtros + tot + tabela;
+  return filtros + dicaAnos + tot + tabela;
 }
 
 function modalMov(id, preset) {
@@ -1185,10 +1213,11 @@ function modalMov(id, preset) {
   const cats = S.fin.categorias.filter((c) => c !== 'Transferência');
   openModal(m ? 'Editar lançamento' : 'Novo lançamento', `
     <label>Tipo</label><select id="mv-tipo" data-chg="mv-tipo"><option value="saida" ${p.tipo === 'saida' || !p.tipo ? 'selected' : ''}>Saída (despesa)</option><option value="entrada" ${p.tipo === 'entrada' ? 'selected' : ''}>Entrada (receita)</option><option value="transferencia" ${p.tipo === 'transferencia' ? 'selected' : ''}>Transferência entre contas</option></select>
-    <div class="two"><div><label>Data</label><input type="date" id="mv-data" value="${esc(p.data || t.iso)}"></div><div><label>Valor (R$)</label><input type="number" step="0.01" min="0.01" id="mv-valor" value="${p.valor || ''}"></div></div>
+    <div class="two"><div><label>Data</label><input type="date" id="mv-data" data-chg="mv-tipo" value="${esc(p.data || t.iso)}"></div><div><label>Valor (R$)</label><input type="number" step="0.01" min="0.01" id="mv-valor" value="${p.valor || ''}"></div></div>
     <div class="two"><div><label id="mv-conta-l">Conta</label><select id="mv-conta" data-chg="mv-tipo"><option value="conta" ${p.conta !== 'aplicacao' ? 'selected' : ''}>Conta corrente</option><option value="aplicacao" ${p.conta === 'aplicacao' ? 'selected' : ''}>Aplicação</option></select></div>
     <div id="mv-cat-w"><label>Categoria</label><select id="mv-cat" data-chg="mv-cat">${cats.map((c) => `<option ${p.categoria === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__nova">➕ Nova categoria…</option></select><input id="mv-cat-n" placeholder="Nome da nova categoria" hidden style="margin-top:6px"></div></div>
     <div id="mv-dest" class="hint" hidden></div>
+    <div id="mv-dhint" class="hint" style="color:#b8860b" hidden></div>
     <div id="mv-evt-w"><label>Evento (opcional)</label><select id="mv-evt"><option value="">— nenhum —</option>${S.fin.eventos.map((e) => `<option value="${e.id}" ${p.eventoId === e.id ? 'selected' : ''}>${esc(e.nome)}</option>`).join('')}</select></div>
     <label>Descrição</label><input id="mv-desc" value="${esc(p.descricao || '')}" placeholder="Ex.: Coffee break da reunião de março">
     <label>Observação (opcional)</label><textarea id="mv-obs">${esc(p.obs || '')}</textarea>`,
@@ -1196,6 +1225,7 @@ function modalMov(id, preset) {
     label: 'Salvar', cls: 'primary', fn: async () => {
       const tipo = val('mv-tipo'), conta = val('mv-conta'), valor = parseFloat(val('mv-valor')), data = val('mv-data'), desc = val('mv-desc').trim();
       if (!data) { modalErr('Informe a data.'); return false; }
+      if (+data.slice(0, 4) < 2020 || +data.slice(0, 4) > 2100) { modalErr('Confira o ano da data: ' + data.slice(0, 4)); return false; }
       if (!(valor > 0)) { modalErr('Informe um valor maior que zero.'); return false; }
       if (!desc) { modalErr('Informe a descrição.'); return false; }
       let categoria = val('mv-cat'); if (categoria === '__nova') categoria = val('mv-cat-n').trim();
@@ -1203,7 +1233,9 @@ function modalMov(id, preset) {
       const mov = { id: m ? m.id : uid(), data, tipo, conta, valor, categoria, descricao: desc, eventoId: tipo === 'transferencia' ? null : (val('mv-evt') || null), obs: val('mv-obs') };
       if (tipo === 'transferencia') mov.contaDestino = conta === 'conta' ? 'aplicacao' : 'conta';
       if (!(await finOp({ op: 'mov.save', mov }))) return false;
-      toast('Lançamento salvo.'); renderCurrent();
+      // leva a tela para o ano do lançamento e limpa filtros, para ele aparecer na lista
+      Object.assign(S.finUi, { ano: +data.slice(0, 4), mFiltro: 0, cat: '', evento: '', tipo: '', conta: '', q: '' });
+      toast('Lançamento salvo em ' + fmtData(data) + '.'); renderCurrent();
     }
   }], { wide: true });
   mvToggle();
@@ -1215,6 +1247,14 @@ function mvToggle() {
   const lb = document.getElementById('mv-conta-l'); if (lb) lb.textContent = tr ? 'De' : 'Conta';
   const d = document.getElementById('mv-dest'); if (d) { d.hidden = !tr; d.textContent = tr ? `→ para: ${CONTA_NOME[conta === 'conta' ? 'aplicacao' : 'conta']}. ${conta === 'conta' ? 'Isto é um aporte na aplicação.' : 'Isto é um resgate da aplicação.'} Não conta como receita nem despesa.` : ''; }
   const cs = document.getElementById('mv-cat'), cn = document.getElementById('mv-cat-n'); if (cs && cn) cn.hidden = cs.value !== '__nova';
+  const dh = document.getElementById('mv-dhint'), dv = val('mv-data');
+  if (dh) {
+    let msg = '';
+    if (dv && (+dv.slice(0, 4) < 2020 || +dv.slice(0, 4) > 2100)) msg = '⚠ Confira o ano: ' + dv.slice(0, 4);
+    else if (dv && dv < S.fin.abertura.data) msg = `⚠ Data anterior ao saldo de abertura (${fmtData(S.fin.abertura.data)}): o lançamento aparece na lista, mas não entra nos saldos.`;
+    else if (dv && dv.slice(0, 4) !== String(S.finUi.ano)) msg = `Este lançamento ficará em ${dv.slice(0, 4)}. A tela vai para esse ano ao salvar.`;
+    dh.textContent = msg; dh.hidden = !msg;
+  }
 }
 
 /* ---------- Eventos ---------- */
@@ -1326,7 +1366,6 @@ function renderCurrent() {
 }
 
 /* ===================== AÇÕES (clique) ===================== */
-const dayVal = (row) => parseInt(row.querySelector('.dia-in').value, 10);
 const ACTS = {
   'tab': (el) => goTab(el.dataset.t),
   'logout': () => logout(),
@@ -1351,9 +1390,9 @@ const ACTS = {
   'ficha-x': () => closeFicha(),
   'ficha-ano': (el) => { S.ficha.ano = +el.dataset.y; renderFicha(); },
   'fd-save': async (el) => {
-    const row = el.closest('tr'), dia = dayVal(row);
-    if (!(dia >= 1 && dia <= 31)) { toast('Informe o dia (1 a 31).', 'warn'); return; }
-    if (await salvarPagamentos([{ ano: +row.dataset.y, mes: +row.dataset.m, nome: el.dataset.n, dia }])) toast('Pagamento registrado.');
+    const row = el.closest('tr'), iso = row.querySelector('.dia-in').value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) { toast('Informe a data do pagamento.', 'warn'); return; }
+    if (await salvarPagamentos([{ ano: +row.dataset.y, mes: +row.dataset.m, nome: el.dataset.n, dia: normPagto(iso, +row.dataset.y, +row.dataset.m) }])) toast('Pagamento registrado.');
     renderCurrent();
   },
   'fd-del': async (el) => {
@@ -1406,6 +1445,8 @@ const ACTS = {
   /* financeiro */
   'fin-sub': (el) => { S.finUi.sub = el.dataset.s; renderCurrent(); window.scrollTo(0, 0); },
   'mov-new': () => modalMov(null),
+  'mov-limpar': () => { Object.assign(S.finUi, { mFiltro: 0, cat: '', evento: '', tipo: '', conta: '', q: '' }); renderCurrent(); },
+  'fin-goano': (el) => { Object.assign(S.finUi, { ano: +el.dataset.y, mFiltro: 0 }); renderCurrent(); },
   'mov-edit': (el) => modalMov(el.dataset.id),
   'mov-del': async (el) => { if (await confirmBox('Excluir lançamento', 'Excluir este lançamento definitivamente?', 'Excluir', true)) { if (await finOp({ op: 'mov.del', id: el.dataset.id })) toast('Lançamento excluído.'); renderCurrent(); } },
   'evt-new': () => modalEvento(null),
@@ -1441,6 +1482,7 @@ const CHG = {
   'mov-f-tipo': (el) => { S.finUi.tipo = el.value; renderCurrent(); },
   'mov-f-conta': (el) => { S.finUi.conta = el.value; renderCurrent(); },
   'mov-auto': (el) => { S.finUi.auto = el.checked; renderCurrent(); },
+  'bulk-modo': (el) => { S.nuc.modo = el.value; renderCurrent(); },
   'mv-tipo': () => mvToggle(),
   'mv-cat': () => mvToggle()
 };
@@ -1450,7 +1492,8 @@ const INP = {
   'teso-q': (el) => { S.teso.q = el.value; renderCurrent(); },
   'comp-q': (el) => { S.compQ = el.value; renderCurrent(); },
   'mov-q': (el) => { S.finUi.q = el.value; renderCurrent(); },
-  'bulk-dia': (el) => { S.nuc.dia = el.value; }
+  'bulk-dia': (el) => { S.nuc.dia = el.value; },
+  'bulk-data': (el) => { S.nuc.data = el.value; }
 };
 
 document.addEventListener('click', (e) => {
