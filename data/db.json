@@ -805,13 +805,6 @@
     ],
     "eventos": [
       {
-        "id": "mw3v38whj03kl",
-        "nome": "Teste",
-        "data": "2026-11-09",
-        "orcamento": 1000,
-        "obs": ""
-      },
-      {
         "id": "mw3v39s0wtd7j",
         "nome": "Teste",
         "data": "2026-11-09",
