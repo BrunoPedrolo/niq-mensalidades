@@ -198,9 +198,19 @@
       "Matheus Scatolin": {
         "ano": 2026,
         "mes": 6
+      },
+      "Yuri Signorati": {
+        "ano": 2026,
+        "mes": 3
       }
     },
-    "mensalidade": 25
+    "mensalidade": 25,
+    "mensalidades": {
+      "2026": 25,
+      "2027": 30
+    },
+    "inativoDesde": {},
+    "tesoureiroNome": "Bruno Henrique Pedrolo de Souza"
   },
   "comprovantes": [
     {
@@ -779,5 +789,56 @@
       "valor": 25,
       "gerado_em": "09/06/2026, 07:29:40"
     }
-  ]
+  ],
+  "financeiro": {
+    "abertura": {
+      "data": "2026-02-01",
+      "conta": 0,
+      "aplicacao": 0,
+      "definido": false
+    },
+    "categorias": [
+      "Evento",
+      "Despesa operacional",
+      "Rendimento",
+      "Outros"
+    ],
+    "eventos": [
+      {
+        "id": "mw3v38whj03kl",
+        "nome": "Teste",
+        "data": "2026-11-09",
+        "orcamento": 1000,
+        "obs": ""
+      }
+    ],
+    "movimentos": [],
+    "extratos": {},
+    "antecipacoes": [
+      {
+        "id": "ant-seed-0",
+        "nome": "Jarbas Junior de Matos",
+        "ano": 2026,
+        "recebidoEm": "2026-02-10",
+        "de": 2,
+        "ate": 12
+      },
+      {
+        "id": "ant-seed-1",
+        "nome": "Eliane dos Santos",
+        "ano": 2026,
+        "recebidoEm": "2026-02-10",
+        "de": 2,
+        "ate": 12
+      },
+      {
+        "id": "ant-seed-2",
+        "nome": "Joceli Nepomuceno",
+        "ano": 2026,
+        "recebidoEm": "2026-02-10",
+        "de": 2,
+        "ate": 12
+      }
+    ]
+  }
 }
