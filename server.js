@@ -246,6 +246,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 const needReady = (req, res, next) => ready ? next() : res.status(503).json({ error: 'Banco de dados indisponível no momento' });
 
 const isInt = (v, a, b) => Number.isInteger(v) && v >= a && v <= b;
+const dataValida = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && new Date(s + 'T00:00:00Z').toISOString().slice(0, 10) === s && +s.slice(0, 4) >= 2020 && +s.slice(0, 4) <= 2100;
 const str = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
 
 // ─── ROTAS PÚBLICAS ──────────────────────────────────────────────────────────
@@ -281,7 +282,8 @@ app.post('/api/pagamentos/bulk', auth('tesoureiro'), needReady, async (req, res)
   const regs = req.body && req.body.registros;
   if (!Array.isArray(regs) || regs.length > 1000) return res.status(400).json({ error: 'Registros inválidos' });
   for (const r of regs) {
-    if (!isInt(r.ano, 2020, 2100) || !isInt(r.mes, 1, 12) || !str(r.nome, 120) || !(r.dia === null || isInt(r.dia, 1, 31))) {
+    // dia: número (dia do mês de referência), 'AAAA-MM-DD' (pago em outra data) ou null (remover)
+    if (!isInt(r.ano, 2020, 2100) || !isInt(r.mes, 1, 12) || !str(r.nome, 120) || !(r.dia === null || isInt(r.dia, 1, 31) || dataValida(r.dia))) {
       return res.status(400).json({ error: 'Registro inválido' });
     }
   }
@@ -346,7 +348,9 @@ app.post('/api/comprovantes', auth('tesoureiro'), needReady, async (req, res) =>
   if (!str(e.nome, 120) || !isInt(e.mes, 1, 12) || !isInt(e.ano, 2020, 2100) || !isInt(e.dia, 1, 31) || typeof e.valor !== 'number') {
     return res.status(400).json({ error: 'Comprovante inválido' });
   }
-  memDB.comprovantes.unshift({ nome: e.nome, mes: e.mes, ano: e.ano, dia: e.dia, valor: e.valor, gerado_em: String(e.gerado_em || new Date().toLocaleString('pt-BR')).slice(0, 40) });
+  const novo = { nome: e.nome, mes: e.mes, ano: e.ano, dia: e.dia, valor: e.valor, gerado_em: String(e.gerado_em || new Date().toLocaleString('pt-BR')).slice(0, 40) };
+  if (e.pagoEm !== undefined) { if (!dataValida(e.pagoEm)) return res.status(400).json({ error: 'Data do pagamento inválida' }); novo.pagoEm = e.pagoEm; }
+  memDB.comprovantes.unshift(novo);
   if (memDB.comprovantes.length > 300) memDB.comprovantes.length = 300;
   const saved = await persist();
   res.json({ ok: true, saved });
